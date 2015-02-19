@@ -10,8 +10,6 @@ import sys
 import qsubsettings
 from glob import glob
 
-_QSUBCMD = 'qsub'
-
 
 def _globalimports(func):
     for name, val in func.__globals__.iteritems():
@@ -63,43 +61,8 @@ def stdout_redirected(to=os.devnull):
                                             # CLOEXEC may be different
 
 
-def _parseSettings(settings):
-
-    def executableExists(program):
-        def is_executeable(fpath):
-            return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
-
-        fpath, fname = os.path.split(program)
-        if fpath:
-            if is_executeable(program):
-                return program
-        else:
-            for path in os.environ["PATH"].split(os.pathsep):
-                path = path.strip('"')
-                exe_file = os.path.join(path, program)
-                if is_executeable(exe_file):
-                    return exe_file
-
-    qsubset = [_QSUBCMD]
-    # Do a quick qsub call to identify if qsub is installed on the machine
-    # TODO: Check if qsub is outside of PATH available
-    if not executableExists(qsubset[0]):
-        raise OSError(
-            "qsub cannot be found on this machine, did you install it?")
-    for setting in settings:
-        # Explicitly testing for the boolean, if True we just append the key
-        # with no value since in cases of e.g. -cwd we don't want to have any
-        # value
-        if settings[setting] == True:
-            qsubset.append(setting)
-        else:
-            qsubset.append(setting)
-            qsubset.append(settings[setting])
-    return qsubset
-
-
 def _getQsubCmd(settings):
-    return _parseSettings(settings)
+    return qsubsettings._parseSettings(settings)
 
 
 def runcluster(numjobs, settings=qsubsettings.smallclustersetting):

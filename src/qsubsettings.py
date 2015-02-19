@@ -1,5 +1,8 @@
 import re
 from functools import wraps
+import os
+
+_QSUBCMD = 'qsub'
 
 _QSUBSYNOPSIS = 'qsub [-a date_time] [-A account_string] [-b secs] [-c checkpoint_options]\
 [-C directive_prefix] [-cwd] [-clear] [-d path] [-D path] [-e path] [-f] [-F] [-h]\
@@ -29,8 +32,38 @@ _TEMPLATE = {
 }
 
 
-def _parseSettings(setting):
-    return
+def _parseSettings(settings):
+    def executableExists(program):
+        def is_executeable(fpath):
+            return os.path.isfile(fpath) and os.access(fpath, os.X_OK)
+
+        fpath, fname = os.path.split(program)
+        if fpath:
+            if is_executeable(program):
+                return program
+        else:
+            for path in os.environ["PATH"].split(os.pathsep):
+                path = path.strip('"')
+                exe_file = os.path.join(path, program)
+                if is_executeable(exe_file):
+                    return exe_file
+
+    qsubset = [_QSUBCMD]
+    # Do a quick qsub call to identify if qsub is installed on the machine
+    # TODO: Check if qsub is outside of PATH available
+    if not executableExists(qsubset[0]):
+        raise OSError(
+            "qsub cannot be found on this machine, did you install it?")
+    for setting in settings:
+        # Explicitly testing for the boolean, if True we just append the key
+        # with no value since in cases of e.g. -cwd we don't want to have any
+        # value
+        if settings[setting] == True:
+            qsubset.append(setting)
+        else:
+            qsubset.append(setting)
+            qsubset.append(settings[setting])
+    return qsubset
 
 
 def validateSettings(mdict):
