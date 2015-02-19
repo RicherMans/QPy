@@ -1,2 +1,77 @@
 # QPy
-A Gridengine wrapper for Python which easily allows to run functions on the Grid
+A Gridengine wrapper for Python which easily allows to run functions on the Grid.
+
+## Example
+Using QPy with say 5 parallel Jobs on the Gridengine 
+```python
+from QPy import *
+
+@runcluster(5)
+def add(a,b):
+	return a+b
+
+a = range(10000)
+b = range(10000)
+add(a,b)
+```
+
+## Installing
+
+Download it or clone it:
+
+```
+git clone https://github.com/RicherMans/QPy
+```
+
+Simply run a the installer via:
+
+```
+cd QPy 
+python setup install
+```
+
+or for the user specific installation:
+
+```
+cd QPy 
+python setup install --user
+```
+
+## Motivation
+
+The usage of the Gridengine is enormous, one can easily submit anykind of Jobs to work with. The only problem is that it does not parallelize it's executed programs by default ( e.g. pool.map() in python), which means that when one wants to parallelize his Python code he needs to do a reasonable amount of work by splitting the input directories/files into different chunks and then executing Qsub from there on.
+
+While it is not as big of a deal, I personally hated it, since oftentimes I already have my data within my python program and would then need to rewrite specific parts of it to make it suitable for the Gridengine.
+
+## What does QPy offer?
+
+It does simply offer an very basic and easy to use decorator for your code. You can effordlessly use any function parallelized on the Grid.
+
+## Where are the limitations?
+
+* Since it needs to somehow synchronize with the jobs, the calling script will **block** until the jobs have finished. Be sure to open  a new screen when your executing python script if you want to be safe!
+* We havent yet tested class based member functions, maybe they can't be executed using QPy
+* We simply dump and read the already stored data out of the memory. Technically QPy can parallize data already stored in memory or just simple lists of files, but the file lists are preferred, since the IO-Overhead for dumping anykind of binary data and then reading it again for the respective job is immense. If you can better read in your data within the parallelized function, not with the main thread.
+
+## Where do I find the Settings?
+
+By default QPy uses a custom setting for the Gridengine for the SJTU. One can change that setting by simply adding a new dict and adding it as a setting, e.g.:
+
+```python
+from QPy import *
+newsetting{
+'-o':'myoutputfile',
+'-pe':'12',
+'-t':'5'
+}
+
+@setting(newsetting)
+@runcluster(5)
+def add(a,b):
+	return a+b
+
+a = range(10000)
+b = range(10000)
+add(a,b)
+```
+You need to be sure if you use external Packages that they are available and installed on every machine, otherwise the Jobs will fail!
