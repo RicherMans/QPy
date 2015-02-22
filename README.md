@@ -52,6 +52,12 @@ It does simply offer an very basic and easy to use decorator for your code. You 
 * Since it needs to somehow synchronize with the jobs, the calling script will **block** until the jobs have finished. Be sure to open  a new screen when your executing python script if you want to be safe!
 * We havent yet tested class based member functions, maybe they can't be executed using QPy
 * We simply dump and read the already stored data out of the memory. Technically QPy can parallize data already stored in memory or just simple lists of files, but the file lists are preferred, since the IO-Overhead for dumping anykind of binary data and then reading it again for the respective job is immense. If you can better read in your data within the parallelized function, not with the main thread.
+* When using external packages, one should import them into the global scope. Importing into the local scope does prevent QPy to see if a package was even imported hence it would be impossible to run the package on the cluster. Use: ```python
+import numpy as np
+```
+instead of: ```python
+from numpy import *
+```
 
 ## Where do I find the Settings?
 
